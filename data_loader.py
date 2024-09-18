@@ -73,7 +73,7 @@ def load_coreset(data_dir, dataset, shuffle, batch_size=64, test_batch_size=64, 
     train_loader = DataLoader(coreset, batch_size=batch_size, shuffle=shuffle, sampler=sampler)
     test_loader = DataLoader(test_dataset, batch_size=test_batch_size, shuffle=False)
 
-    return train_loader, test_loader, coreset
+    return train_loader, test_loader, coreset, nclass
 
 def load_dataset(data_dir, batch_size=64, pruning_rate=0.1):
     transform = transforms.Compose([

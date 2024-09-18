@@ -17,7 +17,7 @@ def train(epoch):
     for data, target in progress_bar:
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
-        output = model(data)
+        _, output = model(data)
         loss = criterion(output, target)
         # print(loss)
         loss.backward()
@@ -43,7 +43,7 @@ def test():
         progress_bar = tqdm(test_loader, desc="Testing")
         for data, target in progress_bar:
             data, target = data.to(device), target.to(device)
-            output = model(data)
+            _, output = model(data)
             test_loss += test_criterion(output, target).item()
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
@@ -61,14 +61,19 @@ if __name__ == "__main__":
 
     train_loader, test_loader = load_data(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size)
 
+    if args.dataset == "cifar10":
+        nclass = 10
+    elif args.dataset == "cifar100":
+        nclass = 100
+
     if args.model.lower()=='r18':
-        model = ResNet18(100)
+        model = ResNet18(nclass)
     elif args.model.lower()=='r50':
-        model = ResNet50(num_classes=100)
+        model = ResNet50(num_classes=nclass)
     elif args.model.lower()=='r101':
-        model = ResNet101(num_classes=100)
+        model = ResNet101(num_classes=nclass)
     else:
-        model = ResNet50(num_classes=100)
+        model = ResNet50(num_classes=nclass)
     model = model.to(device)
     
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
@@ -111,3 +116,6 @@ if __name__ == "__main__":
     
     np.save(os.path.join(save_dir, "accuracy.npy"), accuracies)
     np.save(os.path.join(save_dir, "test_accuracy.npy"), test_accuracies)
+    print("Whole dataset for training")
+    print("shuffle", args.shuffle)
+    print("optimizer:", args.optimizer)

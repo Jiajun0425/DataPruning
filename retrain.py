@@ -98,16 +98,16 @@ if __name__ == "__main__":
     next_stage_epoch = num_epoch_each_stage[i_stage]
     i_stage += 1
 
-    train_loader, test_loader, coreset = load_coreset(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size, args.pruning_method, args.ratio, score, args.num_epoch, args.delta)
+    train_loader, test_loader, coreset, nclass = load_coreset(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size, args.pruning_method, args.ratio, score, args.num_epoch, args.delta)
 
     if args.model.lower()=='r18':
-        model = ResNet18(100)
+        model = ResNet18(nclass)
     elif args.model.lower()=='r50':
-        model = ResNet50(num_classes=100)
+        model = ResNet50(num_classes=nclass)
     elif args.model.lower()=='r101':
-        model = ResNet101(num_classes=100)
+        model = ResNet101(num_classes=nclass)
     else:
-        model = ResNet50(num_classes=100)
+        model = ResNet50(num_classes=nclass)
     model = model.to(device)
     
     if args.pruning_method in ["infobatch"]:
@@ -138,7 +138,7 @@ if __name__ == "__main__":
             score = scores[i_stage]
             next_stage_epoch += num_epoch_each_stage[i_stage]
             i_stage += 1
-            train_loader, test_loader, coreset = load_coreset(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size, args.pruning_method, args.ratio, score, args.num_epoch, args.delta)
+            train_loader, test_loader, coreset, nclass = load_coreset(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size, args.pruning_method, args.ratio, score, args.num_epoch, args.delta)
 
         lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, args.max_lr,
                                                             steps_per_epoch=len(train_loader),
@@ -150,4 +150,7 @@ if __name__ == "__main__":
         else:
             train(epoch)
     test()
-
+    print("pruning-method:", args.pruning_method)
+    print("ratio:", args.ratio)
+    print("delta:", args.delta)
+    print("shuffle:", args.shuffle)

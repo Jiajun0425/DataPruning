@@ -160,18 +160,23 @@ if __name__ == "__main__":
     i_stage += 1
 
     if args.pruning_method == "infobatch":
-        train_loader, test_loader, coreset = load_coreset(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size, args.pruning_method, args.ratio, score, args.num_epoch, args.delta)
+        train_loader, test_loader, coreset, nclass = load_coreset(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size, args.pruning_method, args.ratio, score, args.num_epoch, args.delta)
     else:
         train_loader, test_loader = load_data(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size)
+    
+    if args.dataset == "cifar10":
+        nclass = 10
+    elif args.dataset == "cifar100":
+        nclass = 100
 
     if args.model.lower()=='r18':
-        model = ResNet18(100)
+        model = ResNet18(nclass)
     elif args.model.lower()=='r50':
-        model = ResNet50(num_classes=100)
+        model = ResNet50(num_classes=nclass)
     elif args.model.lower()=='r101':
-        model = ResNet101(num_classes=100)
+        model = ResNet101(num_classes=nclass)
     else:
-        model = ResNet50(num_classes=100)
+        model = ResNet50(num_classes=nclass)
     model = model.to(device)
     
     if args.pruning_method in ["infobatch", "prune"]:
@@ -197,12 +202,9 @@ if __name__ == "__main__":
                                                   epochs=args.num_epoch,div_factor=args.div_factor,
                                                   final_div_factor=args.final_div,pct_start=args.pct_start)
 
-    if args.dataset == "cifar10":
-        nclass = 10
-    elif args.dataset == "cifar100":
-        nclass = 100
+    
     class_features = torch.zeros((nclass, 1)).to(device)
-    selection = "mean"
+    selection = None
     print("selection:", selection)
     for epoch in range(args.num_epoch):
         lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, args.max_lr,
@@ -220,4 +222,8 @@ if __name__ == "__main__":
         else:
             train(epoch)
     test()
-
+    print("pruning-method:", args.pruning_method)
+    print("ratio:", args.ratio)
+    print("delta:", args.delta)
+    print("shuffle:", args.shuffle)
+    print("selection:", selection)

@@ -83,6 +83,11 @@ if __name__ == "__main__":
     whole_loader, _ = load_data(args.data_dir, args.dataset, args.shuffle, args.batch_size, args.test_batch_size)
     sample_loader, _ = load_data(args.data_dir, args.dataset, args.shuffle, 1, args.test_batch_size)
 
+    if args.dataset == "cifar10":
+        nclass = 10
+    elif args.dataset == "cifar100":
+        nclass = 100
+
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     batch_criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing, reduction='none')
 
@@ -99,13 +104,13 @@ if __name__ == "__main__":
         for i, k in enumerate(top_k_epoch):
             model_dir = os.path.join(save_dir, f"models/epoch={k}")
             if args.model.lower()=='r18':
-                model = ResNet18(100)
+                model = ResNet18(nclass)
             elif args.model.lower()=='r50':
-                model = ResNet50(num_classes=100)
+                model = ResNet50(num_classes=nclass)
             elif args.model.lower()=='r101':
-                model = ResNet101(num_classes=100)
+                model = ResNet101(num_classes=nclass)
             else:
-                model = ResNet50(num_classes=100)
+                model = ResNet50(num_classes=nclass)
             model = load_model(model_dir, model)
             model = model.to(device)
 
